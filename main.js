@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const libraryItems = Array.from(
     libraryContent.querySelectorAll(".library-item")
   );
-  console.log(libraryItems);
+  // console.log(libraryItems);
 
   // === Search Input Sidebar ====
   searchInput.addEventListener("input", () => {
@@ -448,20 +448,106 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // ==== Library Content ====
+  // ======== Library Content ========
   const trackSection = document.querySelector(".tracks-section");
 
   libraryItems.forEach((item) => {
     item.addEventListener("click", async () => {
-      const { tracks } = await httpRequest.get("tracks?limit=20&offset=0");
-      console.log(tracks);
-      tracks.forEach((track) => {
-        
-        if (item.children[1].children[0].textContent === track.artist_name) {
-          console.log(track);
-        };
-      });
-      // trackSection.appendChild(html);
+      trackSection.innerHTML = "";
+
+      const inner = document.createElement("div");
+      inner.className = "inner-section";
+
+      // Get Artists
+      try {
+        const { artists } = await httpRequest.get("artists?limit=6&offset=0");
+        const html = artists
+          .map((artist) => {
+            if (item.children[1].children[0].textContent === artist.name) {
+              return `
+              <section class="artist-hero">
+                <div class="hero-background">
+                  <img
+                    src="${artist.background_image_url}"
+                    alt="${artist.name}"
+                    class="hero-image"
+                  />
+                  <div class="hero-overlay"></div>
+                </div>
+                <div class="hero-content">
+                  <div class="verified-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified Artist</span>
+                  </div>
+                  <h1 class="artist-name">${artist.name}</h1>
+                  <p class="monthly-listeners">${artist.monthly_listeners} monthly listeners</p>
+                </div>
+              </section>
+
+              <section class="artist-controls">
+                <button class="play-btn-large">
+                  <i class="fas fa-play"></i>
+                </button>
+              </section>
+            `;
+            }
+          })
+          .join("");
+
+        inner.innerHTML = html;
+        trackSection.appendChild(inner);
+      } catch (error) {
+        console.log(error);
+      }
+
+      // Get Tracks
+      try {
+        const { tracks } = await httpRequest.get("tracks?limit=20&offset=0");
+        // console.log(tracks);
+        const popularSection = document.createElement("section");
+        popularSection.className = "popular-section";
+        const titleSection = document.createElement("h2");
+        titleSection.className = "section-title";
+        titleSection.textContent = "Popular"
+        const trackList = document.createElement("div");
+        trackList.className = "track-list";
+
+        const html = tracks
+          .map((track) => {
+            if (
+              item.children[1].children[0].textContent === track.artist_name
+            ) {
+              return `
+            <div class="track-item">
+                <div class="track-number">${track.track_number}</div>
+                <div class="track-image">
+                  <img
+                    src="${track.artist_image_url}"
+                    alt="${track.title}"
+                  />
+                </div>
+                <div class="track-info">
+                  <div class="track-name">${track.title}</div>
+                </div>
+                <div class="track-plays">${track.play_count}</div>
+                <div class="track-duration">${track.duration}s</div>
+                <button class="track-menu-btn">
+                  <i class="fas fa-ellipsis-h"></i>
+                </button>
+              </div>
+          `;
+            }
+          })
+          .join("");
+        // console.log(html);
+
+        trackList.innerHTML = html;
+        popularSection.appendChild(titleSection);
+        popularSection.appendChild(trackList)
+        trackSection.append(popularSection);
+      } catch (error) {
+        console.log(error);
+      }
     });
   });
 });
