@@ -43,15 +43,32 @@
             <button class="search-library-btn">
               <i class="fas fa-search"></i>
             </button>
-            <input type="text" class="form-input search-sidebar-input" placeholder="Tìm kiếm" hidden/>
+            <input
+              type="text"
+              class="form-input search-sidebar-input"
+              placeholder="Tìm kiếm"
+              hidden
+            />
             <button class="sort-btn">
               Recents
-              <i class="fas fa-list"></i>
+              <i class="fa-solid fa-list"></i>
             </button>
+            <div class="recent-menu">
+              <div class="recent-menu-item">Gần đầy</div>
+              <div class="recent-menu-item">Mới thêm gần đây</div>
+              <div class="recent-menu-item">Thứ tự chữ cái</div>
+              <div class="recent-menu-item">Người sáng tạo</div>
+              <div class="recent-menu-icon type">
+                <div class="recent-icon-type"><i class="fa-solid fa-list active"></i></div>
+                <div class="recent-icon-type"><i class="fa-solid fa-bars"></i></div>
+                <div class="recent-icon-type"><i class="fa-solid fa-table-cells"></i></i></div>
+                <div class="recent-icon-type"><i class="fa-solid fa-border-all"></i></div>
+              </div>
+            </div>
           </div>
 
           <div class="library-content">
-            <div class="library-item active">
+            <!-- <div class="library-item active">
               <div class="item-icon liked-songs">
                 <i class="fas fa-heart"></i>
               </div>
@@ -110,7 +127,7 @@
                 <div class="item-title">Thùy Chi</div>
                 <div class="item-subtitle">Artist</div>
               </div>
-            </div>
+            </div> -->
           </div>
         </nav>
       </aside>
@@ -160,12 +177,12 @@
 
         <div class="content-wrapper">
           <!-- Today's Biggest Hits Section -->
-          <section class="hits-section">
+          <section class="hits-section" hidden>
             <div class="section-header">
               <h2 class="section-heading">Today's biggest hits</h2>
             </div>
             <div class="hits-grid">
-              <div class="hit-card">
+              <!-- <div class="hit-card">
                 <div class="hit-card-cover">
                   <img
                     src="placeholder.svg?height=160&width=160"
@@ -259,17 +276,17 @@
                   <h3 class="hit-card-title">Cho Tôi Lang Thang</h3>
                   <p class="hit-card-artist">Đen</p>
                 </div>
-              </div>
+              </div> -->
             </div>
           </section>
 
           <!-- Popular Artists Section -->
-          <section class="artists-section">
+          <section class="artists-section" hidden>
             <div class="section-header">
               <h2 class="section-heading">Popular artists</h2>
             </div>
             <div class="artists-grid">
-              <div class="artist-card">
+              <!-- <div class="artist-card">
                 <div class="artist-card-cover">
                   <img src="placeholder.svg?height=160&width=160" alt="Đen" />
                   <button class="artist-play-btn">
@@ -344,12 +361,13 @@
                   <h3 class="artist-card-name">Trúc Nhân</h3>
                   <p class="artist-card-type">Artist</p>
                 </div>
-              </div>
+              </div> -->
             </div>
           </section>
 
-          <!-- Artist Hero Section -->
-          <section class="artist-hero">
+          <section class="tracks-section">
+            <!-- Artist Hero Section -->
+          <!-- <section class="artist-hero">
             <div class="hero-background">
               <img
                 src="placeholder.svg"
@@ -366,17 +384,17 @@
               <h1 class="artist-name">Đen</h1>
               <p class="monthly-listeners">1,021,833 monthly listeners</p>
             </div>
-          </section>
+          </section> -->
 
           <!-- Artist Controls -->
-          <section class="artist-controls">
+          <!-- <section class="artist-controls">
             <button class="play-btn-large">
               <i class="fas fa-play"></i>
             </button>
-          </section>
+          </section> -->
 
           <!-- Popular Tracks -->
-          <section class="popular-section">
+          <!-- <section class="popular-section">
             <h2 class="section-title">Popular</h2>
             <div class="track-list">
               <div class="track-item">
@@ -432,6 +450,7 @@
                 </button>
               </div>
             </div>
+          </section> -->
           </section>
         </div>
       </main>
