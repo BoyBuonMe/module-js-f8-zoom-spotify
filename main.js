@@ -450,10 +450,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ======== Library Content ========
   const trackSection = document.querySelector(".tracks-section");
+  const hitsSection = document.querySelector(".hits-section");
+  const artistsSection = document.querySelector(".artists-section");
 
   libraryItems.forEach((item) => {
-    item.addEventListener("click", async () => {
+    console.log(item.className);
+
+    item.addEventListener("click", async (e) => {
       trackSection.innerHTML = "";
+      hitsSection.hidden = true;
+      artistsSection.hidden = true;
 
       const inner = document.createElement("div");
       inner.className = "inner-section";
@@ -508,7 +514,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         popularSection.className = "popular-section";
         const titleSection = document.createElement("h2");
         titleSection.className = "section-title";
-        titleSection.textContent = "Popular"
+        titleSection.textContent = "Popular";
         const trackList = document.createElement("div");
         trackList.className = "track-list";
 
@@ -543,7 +549,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         trackList.innerHTML = html;
         popularSection.appendChild(titleSection);
-        popularSection.appendChild(trackList)
+        popularSection.appendChild(trackList);
         trackSection.append(popularSection);
       } catch (error) {
         console.log(error);
@@ -668,8 +674,4 @@ function getScrollSideBar() {
   const scrollbarWidth = div.offsetWidth - child.offsetWidth;
   document.body.removeChild(div);
   return scrollbarWidth + "px";
-}
-
-function getArtistId(e) {
-  console.log(e.target.children[1].children[0].textContent);
 }
