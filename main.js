@@ -98,7 +98,6 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelector(".auth-form-content")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
-      console.log(123);
       const email = document.querySelector("#signupEmail").value;
       const password = document.querySelector("#signupPassword").value;
       const username = document.querySelector("#signupUsername").value;
@@ -227,6 +226,109 @@ document.addEventListener("DOMContentLoaded", async () => {
   const recentMenu = document.querySelector(".recent-menu");
   const libraryContent = document.querySelector(".library-content");
 
+  libraryContent.addEventListener("click", async (e) => {
+    const itemTarget = e.target.closest(".library-item");
+    if (itemTarget) {
+      const id = itemTarget.dataset.id;
+      // ======== Library Content ========
+      const trackSection = document.querySelector(".tracks-section");
+      const hitsSection = document.querySelector(".hits-section");
+      const artistsSection = document.querySelector(".artists-section");
+
+      trackSection.innerHTML = "";
+      hitsSection.hidden = true;
+      artistsSection.hidden = true;
+
+      const inner = document.createElement("div");
+      inner.className = "inner-section";
+
+      // Get Artists
+      try {
+        const artist = await httpRequest.get(`artists/${id}`);
+        // console.log(artist);
+        
+        const html = `
+              <section class="artist-hero">
+                <div class="hero-background">
+                  <img
+                    src="${artist.background_image_url}"
+                    alt="${artist.name}"
+                    class="hero-image"
+                  />
+                  <div class="hero-overlay"></div>
+                </div>
+                <div class="hero-content">
+                  <div class="verified-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified Artist</span>
+                  </div>
+                  <h1 class="artist-name">${artist.name}</h1>
+                  <p class="monthly-listeners">${artist.monthly_listeners} monthly listeners</p>
+                </div>
+              </section>
+
+              <section class="artist-controls">
+                <button class="play-btn-large">
+                  <i class="fas fa-play"></i>
+                </button>
+              </section>
+            `;
+
+        inner.innerHTML = html;
+        trackSection.appendChild(inner);
+      } catch (error) {
+        console.log(error);
+      }
+
+      // Get Tracks
+      try {
+        const { tracks } = await httpRequest.get("tracks");
+        console.log(tracks);
+        
+        const popularSection = document.createElement("section");
+        popularSection.className = "popular-section";
+        const titleSection = document.createElement("h2");
+        titleSection.className = "section-title";
+        titleSection.textContent = "Popular";
+        const trackList = document.createElement("div");
+        trackList.className = "track-list";
+
+        const html = tracks
+          .map((track) => {
+            if(id !== track.artist_id) return "";
+            return `
+            <div class="track-item" data-id="${track.id}">
+                <div class="track-number">${track.track_number}</div>
+                <div class="track-image">
+                  <img
+                    src="${track.artist_image_url}"
+                    alt="${track.title}"
+                  />
+                </div>
+                <div class="track-info">
+                  <div class="track-name">${track.title}</div>
+                </div>
+                <div class="track-plays">${track.play_count}</div>
+                <div class="track-duration">${track.duration}s</div>
+                <button class="track-menu-btn">
+                  <i class="fas fa-ellipsis-h"></i>
+                </button>
+              </div>
+          `;
+          })
+          .join("");
+        // console.log(html);
+
+        trackList.innerHTML = html;
+        popularSection.appendChild(titleSection);
+        popularSection.appendChild(trackList);
+        trackSection.append(popularSection);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+
   document.addEventListener("click", function (e) {
     if (!recentBtn.contains(e.target) && !recentMenu.contains(e.target)) {
       recentMenu.classList.remove("show");
@@ -260,7 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const html = artists
       .map((item) => {
         return `
-            <div class="library-item">
+            <div class="library-item" data-id="${item.id}">
               <img
                 src="${item.image_url}"
                 alt="${item.name}"
@@ -322,24 +424,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     recentIcon.classList.remove(recentIcon.classList[1]);
     recentIcon.classList.add(e.target.classList[1]);
 
-    libraryContent.innerHTML = "";
+    // libraryContent.innerHTML = "";
+    
 
     // === Type Name ===
     if (e.target === typeName) {
-      const htmlTypeName = libraryItems
-        .map((item) => {
-          return `
-            <div class="library-item">
-              <div class="item-info">
-                <div class="item-title">${item.children[1].children[0].textContent}</div>
-                <div class="item-subtitle">Artist</div>
-              </div>
-            </div>
-    `;
-        })
-        .join("");
-
-      libraryContent.innerHTML = htmlTypeName;
+      libraryContent.setAttribute("data-type","type-name");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -350,25 +440,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Type Item
     if (e.target === typeItem) {
-      const htmlTypeItem = libraryItems
-        .map((item) => {
-          return `
-            <div class="library-item">
-              <img
-                src="${item.children[0].currentSrc}"
-                alt="${item.children[1].children[0].textContent}"
-                class="item-image"
-              />
-              <div class="item-info">
-                <div class="item-title">${item.children[1].children[0].textContent}</div>
-                <div class="item-subtitle">Artist</div>
-              </div>
-            </div>
-        `;
-        })
-        .join("");
-
-      libraryContent.innerHTML = htmlTypeItem;
+      libraryContent.setAttribute("data-type","type-list");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -379,26 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // === Type Album ===
     if (e.target === typeAlbum) {
-      libraryContent.innerHTML = "";
-      const content = document.createElement("div");
-      content.className = "content";
-
-      const htmlAlbum = libraryItems
-        .map((item) => {
-          return `
-            <div class="library-item album">
-              <img
-                src="${item.children[0].currentSrc}"
-                alt="${item.children[1].children[0].textContent}"
-                class="item-image album"
-              />
-            </div>
-    `;
-        })
-        .join("");
-
-      content.innerHTML = htmlAlbum;
-      libraryContent.appendChild(content);
+      libraryContent.setAttribute("data-type","type-album");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -409,152 +462,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // === Type Big Album ===
     if (e.target === typeAlbumBig) {
-      libraryContent.innerHTML = "";
-      const content = document.createElement("div");
-      content.className = "content";
-
-      const htmlAlbum = libraryItems
-        .map((item) => {
-          return `
-            <div class="library-item album big">
-              <img
-                src="${item.children[0].currentSrc}"
-                alt="${item.children[1].children[0].textContent}"
-                class="item-image album big"
-              />
-            </div>
-    `;
-        })
-        .join("");
-
-      content.innerHTML = htmlAlbum;
-      libraryContent.appendChild(content);
+      libraryContent.setAttribute("data-type","type-album");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
         activeElement.classList.remove("active");
         activeElement = e.target;
       }
-
-      // sideBar.style.paddingRight = getScrollSideBar();
     }
 
     // ======== Fix Scrollbar ========
-    if (sideBar.offsetWidth > sideBar.clientWidth) {
-      sideBar.style.paddingRight = getScrollSideBar();
-      if (sideBar.offsetWidth <= sideBar.clientWidth) {
-        sideBar.style.paddingRight = null;
-      }
-    }
-  });
-
-  // ======== Library Content ========
-  const trackSection = document.querySelector(".tracks-section");
-  const hitsSection = document.querySelector(".hits-section");
-  const artistsSection = document.querySelector(".artists-section");
-
-  libraryItems.forEach((item) => {
-    console.log(item.className);
-
-    item.addEventListener("click", async (e) => {
-      trackSection.innerHTML = "";
-      hitsSection.hidden = true;
-      artistsSection.hidden = true;
-
-      const inner = document.createElement("div");
-      inner.className = "inner-section";
-
-      // Get Artists
-      try {
-        const { artists } = await httpRequest.get("artists?limit=6&offset=0");
-        const html = artists
-          .map((artist) => {
-            if (item.children[1].children[0].textContent === artist.name) {
-              return `
-              <section class="artist-hero">
-                <div class="hero-background">
-                  <img
-                    src="${artist.background_image_url}"
-                    alt="${artist.name}"
-                    class="hero-image"
-                  />
-                  <div class="hero-overlay"></div>
-                </div>
-                <div class="hero-content">
-                  <div class="verified-badge">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Verified Artist</span>
-                  </div>
-                  <h1 class="artist-name">${artist.name}</h1>
-                  <p class="monthly-listeners">${artist.monthly_listeners} monthly listeners</p>
-                </div>
-              </section>
-
-              <section class="artist-controls">
-                <button class="play-btn-large">
-                  <i class="fas fa-play"></i>
-                </button>
-              </section>
-            `;
-            }
-          })
-          .join("");
-
-        inner.innerHTML = html;
-        trackSection.appendChild(inner);
-      } catch (error) {
-        console.log(error);
-      }
-
-      // Get Tracks
-      try {
-        const { tracks } = await httpRequest.get("tracks?limit=20&offset=0");
-        // console.log(tracks);
-        const popularSection = document.createElement("section");
-        popularSection.className = "popular-section";
-        const titleSection = document.createElement("h2");
-        titleSection.className = "section-title";
-        titleSection.textContent = "Popular";
-        const trackList = document.createElement("div");
-        trackList.className = "track-list";
-
-        const html = tracks
-          .map((track) => {
-            if (
-              item.children[1].children[0].textContent === track.artist_name
-            ) {
-              return `
-            <div class="track-item">
-                <div class="track-number">${track.track_number}</div>
-                <div class="track-image">
-                  <img
-                    src="${track.artist_image_url}"
-                    alt="${track.title}"
-                  />
-                </div>
-                <div class="track-info">
-                  <div class="track-name">${track.title}</div>
-                </div>
-                <div class="track-plays">${track.play_count}</div>
-                <div class="track-duration">${track.duration}s</div>
-                <button class="track-menu-btn">
-                  <i class="fas fa-ellipsis-h"></i>
-                </button>
-              </div>
-          `;
-            }
-          })
-          .join("");
-        // console.log(html);
-
-        trackList.innerHTML = html;
-        popularSection.appendChild(titleSection);
-        popularSection.appendChild(trackList);
-        trackSection.append(popularSection);
-      } catch (error) {
-        console.log(error);
-      }
-    });
+    // if (sideBar.offsetWidth > sideBar.clientWidth) {
+    //   sideBar.style.paddingRight = getScrollSideBar();
+    //   if (sideBar.offsetWidth <= sideBar.clientWidth) {
+    //     sideBar.style.paddingRight = null;
+    //   }
+    // }
   });
 });
 

@@ -350,23 +350,11 @@
   transition: all var(--transition-fast);
 }
 
-.library-item.album {
-  width: 47%;
-  aspect-ratio: 1;
-}
-
-.library-item.album.big {
-  width: 80%;
-  aspect-ratio: 1;
-}
-
-.library-item:hover,
-.library-item-album:hover {
+.library-item:hover {
   background-color: var(--bg-tertiary);
 }
 
-.library-item.active,
-.library-item.album.active {
+.library-item.active {
   background-color: var(--bg-hover);
 }
 
@@ -375,18 +363,6 @@
   height: 48px;
   border-radius: var(--radius-sm);
   object-fit: cover;
-}
-
-.item-image.album {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.item-image.album.big {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
 }
 
 .item-icon {
