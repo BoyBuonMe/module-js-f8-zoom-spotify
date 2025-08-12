@@ -23,6 +23,11 @@
   z-index: var(--z-sidebar);
 }
 
+.sidebar::-webkit-scrollbar {
+  /* width: 0px;
+  height: 0px; */
+}
+
 .sidebar-header {
   margin-bottom: var(--spacing-xl);
 }

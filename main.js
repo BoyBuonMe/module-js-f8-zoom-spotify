@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
     exportMain.showPasswordSignup();
   }
 
-  // Function to show login form
+  // Function to show login formF
   function showLoginForm() {
     signupForm.style.display = "none";
     loginForm.style.display = "block";
@@ -98,50 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelector(".auth-form-content")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.querySelector("#signupEmail").value;
-      const password = document.querySelector("#signupPassword").value;
-      const username = document.querySelector("#signupUsername").value;
-
-      const credentials = {
-        email,
-        password,
-        username,
-      };
-      try {
-        const { user, access_token } = await httpRequest.post(
-          "auth/register",
-          credentials
-        );
-
-        localStorage.setItem("accessToken", access_token);
-        localStorage.setItem("currentUser", user);
-
-        updateCurrentUser(user);
-      } catch (error) {
-        // console.dir(error);
-        const formGroup = document.querySelectorAll(".form-group");
-        // console.log(formGroup);
-
-        if (error?.response?.error?.code === "USERNAME_EXISTS") {
-          formGroup[2].classList.add("invalid");
-          console.log(formGroup[2]);
-
-          formGroup[2]
-            .querySelector(".error-message")
-            .querySelector("span").textContent = error.response.error.message;
-        } else if (error?.response?.error?.code === "EMAIL_EXISTS") {
-          formGroup[0].classList.add("invalid");
-          formGroup[0]
-            .querySelector(".error-message")
-            .querySelector("span").textContent = error.response.error.message;
-        } else if (error?.response?.error?.code === "VALIDATION_ERROR") {
-          formGroup[1].classList.add("invalid");
-          formGroup[1]
-            .querySelector(".error-message")
-            .querySelector("span").textContent =
-            error.response.error.details[0].message;
-        }
-      }
+      signup();
     });
 
   // Login
@@ -149,29 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelector(".auth-form-content")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.querySelector("#loginEmail").value;
-      const password = document.querySelector("#loginPassword").value;
-      // console.log(email, password);
-
-      const info = {
-        email,
-        password,
-      };
-
-      try {
-        const { user, access_token, refresh_token } = await httpRequest.post(
-          "auth/login",
-          info
-        );
-
-        localStorage.setItem("accessToken", access_token);
-        localStorage.setItem("currentUser", user);
-        localStorage.setItem("refreshToken", refresh_token);
-
-        updateCurrentUser(user);
-      } catch (error) {
-        console.log(error);
-      }
+      login();
     });
 
   // ======== Logout ========
@@ -194,23 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Handle logout button click
   logoutBtn.addEventListener("click", async () => {
-    // Close dropdown first
-    userDropdown.classList.remove("show");
-    try {
-      const result = await httpRequest.post("auth/logout");
-      // console.log(result);
-
-      localStorage.clear();
-
-      const inputForms = document.querySelectorAll(".form-input");
-      inputForms.forEach((inputForm) => {
-        inputForm.value = "";
-      });
-
-      logoutCurrentUser();
-    } catch (error) {
-      console.log(error);
-    }
+    logoutCurrentUser();
   });
 });
 
@@ -227,13 +146,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const libraryContent = document.querySelector(".library-content");
 
   libraryContent.addEventListener("click", async (e) => {
-    const itemTarget = e.target.closest(".library-item");
-    if (itemTarget) {
-      const id = itemTarget.dataset.id;
-      // ======== Library Content ========
-      const trackSection = document.querySelector(".tracks-section");
-      const hitsSection = document.querySelector(".hits-section");
-      const artistsSection = document.querySelector(".artists-section");
+    // ======== Wrapper Content ========
+    const trackSection = document.querySelector(".tracks-section");
+    const hitsSection = document.querySelector(".hits-section");
+    const artistsSection = document.querySelector(".artists-section");
+
+    // ==== Event ====
+    const artistItemTarget = e.target.closest(".library-item.artist-item");
+    if (artistItemTarget) {
+      const id = artistItemTarget.dataset.id;
 
       trackSection.innerHTML = "";
       hitsSection.hidden = true;
@@ -246,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const artist = await httpRequest.get(`artists/${id}`);
         // console.log(artist);
-        
+
         const html = `
               <section class="artist-hero">
                 <div class="hero-background">
@@ -283,8 +204,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Get Tracks
       try {
         const { tracks } = await httpRequest.get("tracks");
-        console.log(tracks);
-        
+        // console.log(tracks);
+
         const popularSection = document.createElement("section");
         popularSection.className = "popular-section";
         const titleSection = document.createElement("h2");
@@ -295,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const html = tracks
           .map((track) => {
-            if(id !== track.artist_id) return "";
+            if (id !== track.artist_id) return "";
             return `
             <div class="track-item" data-id="${track.id}">
                 <div class="track-number">${track.track_number}</div>
@@ -327,6 +248,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log(error);
       }
     }
+
+    const playlistItemTarget = e.target.closest(".library-item.playlist-item");
+    if (playlistItemTarget) {
+      try {
+        const trackOfPlaylist = await httpRequest.get("")
+      } catch (error) {
+        
+      }
+    }
   });
 
   document.addEventListener("click", function (e) {
@@ -355,32 +285,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // ========= Show Artists In Sidebar ============
-  try {
-    const { artists } = await httpRequest.get("artists?limit=3&offset=0");
-    console.log(artists);
+  // try {
+  //   const { artists } = await httpRequest.get("artists?limit=3&offset=0");
+  //   // console.log(artists);
 
-    const html = artists
-      .map((item) => {
-        return `
-            <div class="library-item" data-id="${item.id}">
-              <img
-                src="${item.image_url}"
-                alt="${item.name}"
-                class="item-image"
-              />
-              <div class="item-info">
-                <div class="item-title">${item.name}</div>
-                <div class="item-subtitle">Artist</div>
-              </div>
-            </div>
-    `;
-      })
-      .join("");
+  //   const html = artists
+  //     .map((item) => {
+  //       return `
+  //           <div class="library-item" data-id="${item.id}">
+  //             <img
+  //               src="${item.image_url}"
+  //               alt="${item.name}"
+  //               class="item-image"
+  //             />
+  //             <div class="item-info">
+  //               <div class="item-title">${item.name}</div>
+  //               <div class="item-subtitle">Artist</div>
+  //             </div>
+  //           </div>
+  //   `;
+  //     })
+  //     .join("");
 
-    libraryContent.innerHTML = html;
-  } catch (error) {
-    console.log(error);
-  }
+  //   libraryContent.innerHTML = html;
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   // ============= List Artists Sidebar ==================
   const libraryItems = Array.from(
@@ -425,11 +355,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     recentIcon.classList.add(e.target.classList[1]);
 
     // libraryContent.innerHTML = "";
-    
 
     // === Type Name ===
     if (e.target === typeName) {
-      libraryContent.setAttribute("data-type","type-name");
+      libraryContent.setAttribute("data-type", "type-name");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -438,9 +367,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // Type Item
+    // ==== Type Item ====
     if (e.target === typeItem) {
-      libraryContent.setAttribute("data-type","type-list");
+      libraryContent.setAttribute("data-type", "type-list");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -451,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // === Type Album ===
     if (e.target === typeAlbum) {
-      libraryContent.setAttribute("data-type","type-album");
+      libraryContent.setAttribute("data-type", "type-album");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -462,7 +391,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // === Type Big Album ===
     if (e.target === typeAlbumBig) {
-      libraryContent.setAttribute("data-type","type-album");
+      libraryContent.setAttribute("data-type", "type-album");
 
       if (activeElement !== e.target) {
         e.target.classList.add("active");
@@ -479,6 +408,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     //   }
     // }
   });
+
+  // ==== Playlists OR Artists ====
+  const navTabs = document.querySelector(".nav-tabs");
+  navTabs.addEventListener("click", async (e) => {
+    const playlistBtn = document.querySelector(".nav-tab.playlists");
+    const artistBtn = document.querySelector(".nav-tab.artists");
+    const user = localStorage.getItem("currentUser");
+
+    // ==== Show Playlists ====
+    if (e.target === playlistBtn) {
+      e.target.classList.add("active");
+      artistBtn.classList.remove("active");
+
+      const libraryContent = document.querySelector(".library-content");
+
+      // ==== Load Playlists ====
+      if (user) {
+        try {
+          const { playlists } = await httpRequest.get("me/playlists");
+
+          const html = playlists
+            .map((playlist) => {
+              return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+            })
+            .join("");
+
+          libraryContent.innerHTML = html;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+
+    // ==== Show Artist ====
+    if (e.target === artistBtn) {
+      e.target.classList.add("active");
+      playlistBtn.classList.remove("active");
+
+      if (user) {
+        try {
+          const { artists } = await httpRequest.get("artists?limit=3&offset=0");
+          // console.log(artists);
+
+          const html = artists
+            .map((item) => {
+              return `
+            <div class="library-item artist-item" data-id="${item.id}">
+              <img
+                src="${item.image_url}"
+                alt="${item.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${item.name}</div>
+                <div class="item-subtitle">Artist</div>
+              </div>
+            </div>
+    `;
+            })
+            .join("");
+
+          libraryContent.innerHTML = html;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+  });
 });
 
 // Other functionality
@@ -491,10 +500,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateCurrentUser(user);
   } catch (error) {
     // console.log(error);
+    logoutCurrentUser();
   }
 });
 
-function updateCurrentUser(user) {
+async function updateCurrentUser(user) {
   const authButtons = document.querySelector(".auth-buttons");
   authButtons.style.display = "none";
 
@@ -510,14 +520,72 @@ function updateCurrentUser(user) {
   userName.textContent = user.username;
 
   authModal.classList.remove("show");
+
+  const libraryContent = document.querySelector(".library-content");
+  // ==== Load Artists ====
+  if (user) {
+    try {
+      const { artists } = await httpRequest.get("artists?limit=3&offset=0");
+      // console.log(artists);
+
+      const html = artists
+        .map((item) => {
+          return `
+            <div class="library-item artist-item" data-id="${item.id}">
+              <img
+                src="${item.image_url}"
+                alt="${item.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${item.name}</div>
+                <div class="item-subtitle">Artist</div>
+              </div>
+            </div>
+    `;
+        })
+        .join("");
+
+      libraryContent.innerHTML = html;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
-function logoutCurrentUser() {
+async function logoutCurrentUser() {
+  // const authButtons = document.querySelector(".auth-buttons");
+  // authButtons.style.display = "flex";
+
+  // const userMenu = document.querySelector(".user-menu");
+  // userMenu.style.display = "none";
+
   const authButtons = document.querySelector(".auth-buttons");
   authButtons.style.display = "flex";
 
   const userMenu = document.querySelector(".user-menu");
   userMenu.style.display = "none";
+
+  // Close dropdown first
+  userDropdown.classList.remove("show");
+  try {
+    const result = await httpRequest.post("auth/logout");
+    // console.log(result);
+
+    localStorage.clear();
+
+    const libraryContent = document.querySelector(".library-content");
+    libraryContent.innerHTML = "";
+
+    const inputForms = document.querySelectorAll(".form-input");
+    inputForms.forEach((inputForm) => {
+      inputForm.value = "";
+    });
+
+    // logoutCurrentUser();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function renderHome() {
@@ -597,4 +665,98 @@ function getScrollSideBar() {
   const scrollbarWidth = div.offsetWidth - child.offsetWidth;
   document.body.removeChild(div);
   return scrollbarWidth + "px";
+}
+
+async function signup() {
+  const email = document.querySelector("#signupEmail").value;
+  const password = document.querySelector("#signupPassword").value;
+  const username = document.querySelector("#signupUsername").value;
+
+  const credentials = {
+    email,
+    password,
+    username,
+  };
+  try {
+    const { user, access_token } = await httpRequest.post(
+      "auth/register",
+      credentials
+    );
+
+    localStorage.setItem("accessToken", access_token);
+    localStorage.setItem("currentUser", user);
+
+    updateCurrentUser(user);
+  } catch (error) {
+    // console.dir(error);
+    const formGroup = document.querySelectorAll(".form-group");
+    // console.log(formGroup);
+
+    if (error?.response?.error?.code === "USERNAME_EXISTS") {
+      formGroup[2].classList.add("invalid");
+      // console.log(formGroup[2]);
+
+      formGroup[2]
+        .querySelector(".error-message")
+        .querySelector("span").textContent = error.response.error.message;
+    } else if (error?.response?.error?.code === "EMAIL_EXISTS") {
+      formGroup[0].classList.add("invalid");
+      formGroup[0]
+        .querySelector(".error-message")
+        .querySelector("span").textContent = error.response.error.message;
+    } else if (error?.response?.error?.code === "VALIDATION_ERROR") {
+      formGroup[1].classList.add("invalid");
+      formGroup[1]
+        .querySelector(".error-message")
+        .querySelector("span").textContent =
+        error.response.error.details[0].message;
+    }
+  }
+}
+
+async function login() {
+  const email = document.querySelector("#loginEmail").value;
+  const password = document.querySelector("#loginPassword").value;
+  // console.log(email, password);
+
+  const info = {
+    email,
+    password,
+  };
+
+  try {
+    const { user, access_token, refresh_token } = await httpRequest.post(
+      "auth/login",
+      info
+    );
+
+    localStorage.setItem("accessToken", access_token);
+    localStorage.setItem("currentUser", user);
+    localStorage.setItem("refreshToken", refresh_token);
+
+    updateCurrentUser(user);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function logout() {
+  // const authButtons = document.querySelector(".auth-buttons");
+  // authButtons.style.display = "flex";
+  // const userMenu = document.querySelector(".user-menu");
+  // userMenu.style.display = "none";
+  // // Close dropdown first
+  // userDropdown.classList.remove("show");
+  // try {
+  //   const result = await httpRequest.post("auth/logout");
+  //   // console.log(result);
+  //   localStorage.clear();
+  //   const inputForms = document.querySelectorAll(".form-input");
+  //   inputForms.forEach((inputForm) => {
+  //     inputForm.value = "";
+  //   });
+  //   // logoutCurrentUser();
+  // } catch (error) {
+  //   console.log(error);
+  // }
 }
