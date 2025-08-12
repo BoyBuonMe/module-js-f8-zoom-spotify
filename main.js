@@ -252,10 +252,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const playlistItemTarget = e.target.closest(".library-item.playlist-item");
     if (playlistItemTarget) {
       try {
-        const trackOfPlaylist = await httpRequest.get("")
-      } catch (error) {
-        
-      }
+        const trackOfPlaylist = await httpRequest.get("");
+      } catch (error) {}
     }
   });
 
@@ -313,30 +311,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   // }
 
   // ============= List Artists Sidebar ==================
-  const libraryItems = Array.from(
-    libraryContent.querySelectorAll(".library-item")
-  );
+  // const libraryItems = Array.from(
+  //   document.querySelectorAll(".library-item")
+  // );
   // console.log(libraryItems);
 
   // === Search Input Sidebar ====
-  searchInput.addEventListener("input", () => {
-    libraryContent.innerHTML = "";
+  // searchInput.addEventListener("input", () => {
+  //   libraryContent.innerHTML = "";
 
-    libraryItems.filter((item) => {
-      // console.log(item.children[1].children[0].textContent);
+  //   libraryItems.filter((item) => {
+  //     // console.log(item.children[1].children[0].textContent);
 
-      if (
-        item.children[1].children[0].textContent
-          .toLowerCase()
-          .includes(searchInput.value.toLowerCase())
-      ) {
-        // console.log(item);
-        libraryContent.append(item);
-      }
-    });
+  //     if (
+  //       item.children[1].children[0].textContent
+  //         .toLowerCase()
+  //         .includes(searchInput.value.toLowerCase())
+  //     ) {
+  //       // console.log(item);
+  //       libraryContent.append(item);
+  //     }
+  //   });
 
-    // console.log(libraryItem);
-  });
+  //   // console.log(libraryItem);
+  // });
 
   // ============= Display Type ==================
   const recentMenuIcon = document.querySelector(".recent-menu-icon");
@@ -415,42 +413,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const playlistBtn = document.querySelector(".nav-tab.playlists");
     const artistBtn = document.querySelector(".nav-tab.artists");
     const user = localStorage.getItem("currentUser");
+    const playlistContent = document.querySelector(".inner-playlist");
+    const artistContent = document.querySelector(".inner-artist");
 
     // ==== Show Playlists ====
     if (e.target === playlistBtn) {
       e.target.classList.add("active");
       artistBtn.classList.remove("active");
 
-      const libraryContent = document.querySelector(".library-content");
-
-      // ==== Load Playlists ====
-      if (user) {
-        try {
-          const { playlists } = await httpRequest.get("me/playlists");
-
-          const html = playlists
-            .map((playlist) => {
-              return `
-            <div class="library-item playlist-item" data-id="${playlist.id}">
-              <img
-                src="placeholder.svg?height=48&width=48"
-                alt="${playlist.name}"
-                class="item-image"
-              />
-              <div class="item-info">
-                <div class="item-title">${playlist.name}</div>
-                <div class="item-subtitle"></div>
-              </div>
-            </div>
-    `;
-            })
-            .join("");
-
-          libraryContent.innerHTML = html;
-        } catch (error) {
-          console.log(error);
-        }
-      }
+      playlistContent.hidden = false;
+      artistContent.hidden = true;
     }
 
     // ==== Show Artist ====
@@ -458,34 +430,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.target.classList.add("active");
       playlistBtn.classList.remove("active");
 
-      if (user) {
-        try {
-          const { artists } = await httpRequest.get("artists?limit=3&offset=0");
-          // console.log(artists);
-
-          const html = artists
-            .map((item) => {
-              return `
-            <div class="library-item artist-item" data-id="${item.id}">
-              <img
-                src="${item.image_url}"
-                alt="${item.name}"
-                class="item-image"
-              />
-              <div class="item-info">
-                <div class="item-title">${item.name}</div>
-                <div class="item-subtitle">Artist</div>
-              </div>
-            </div>
-    `;
-            })
-            .join("");
-
-          libraryContent.innerHTML = html;
-        } catch (error) {
-          console.log(error);
-        }
-      }
+      playlistContent.hidden = true;
+      artistContent.hidden = false;
     }
   });
 });
@@ -522,13 +468,13 @@ async function updateCurrentUser(user) {
   authModal.classList.remove("show");
 
   const libraryContent = document.querySelector(".library-content");
-  // ==== Load Artists ====
+  // =================== Load Artists =====================
   if (user) {
     try {
       const { artists } = await httpRequest.get("artists?limit=3&offset=0");
       // console.log(artists);
 
-      const html = artists
+      const htmlArtist = artists
         .map((item) => {
           return `
             <div class="library-item artist-item" data-id="${item.id}">
@@ -546,7 +492,85 @@ async function updateCurrentUser(user) {
         })
         .join("");
 
-      libraryContent.innerHTML = html;
+      const innerArtist = document.createElement("div");
+      innerArtist.innerHTML = htmlArtist;
+      innerArtist.className = "inner-artist";
+      libraryContent.appendChild(innerArtist);
+
+      // =========== Load Playlists ===================
+      const { playlists } = await httpRequest.get("me/playlists");
+
+      const htmlPlaylist = playlists
+        .map((playlist) => {
+          return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+        })
+        .join("");
+
+      const innerPlaylist = document.createElement("div");
+      innerPlaylist.innerHTML = htmlPlaylist;
+      innerPlaylist.className = "inner-playlist";
+      innerPlaylist.hidden = true;
+      libraryContent.appendChild(innerPlaylist);
+
+      // ===== Search Input =====
+      const searchInput = document.querySelector(".search-sidebar-input");
+
+      // ==== Artist Items ====
+      const artistItems = Array.from(document.querySelectorAll(".artist-item"));
+
+      // ==== Playlist Items ====
+      const playlistItems = Array.from(
+        document.querySelectorAll(".playlist-item")
+      );
+
+      searchInput.addEventListener("input", () => {
+        // ==== IF Artists Active ====
+        const artistsBtn = document.querySelector(".nav-tab.artists");
+        if (artistsBtn.classList.value.includes("active")) {
+          innerArtist.innerHTML = "";
+
+          artistItems.filter((artist) => {
+            // console.log(item.children[1].children[0].textContent);
+
+            if (
+              artist.children[1].children[0].textContent
+                .toLowerCase()
+                .includes(searchInput.value.toLowerCase())
+            ) {
+              // console.log(item);
+              innerArtist.append(artist);
+            }
+          });
+        }
+
+        // ==== IF Playlist Active ====
+        const playlistsBtn = document.querySelector(".nav-tab.playlists");
+        if (playlistsBtn.classList.value.includes("active")) {
+          innerPlaylist.innerHTML = "";
+
+          playlistItems.filter((playlist) => {
+            if (
+              playlist.children[1].children[0].textContent
+                .toLowerCase()
+                .includes(searchInput.value.toLowerCase())
+            ) {
+              innerPlaylist.append(playlist);
+            }
+          });
+        }
+      });
     } catch (error) {
       console.log(error);
     }
