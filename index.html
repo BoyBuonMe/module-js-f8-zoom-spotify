@@ -641,6 +641,52 @@
       </div>
     </div>
 
+    <!-- Playlist Modal -->
+    <div class="modal-overlay" id="playlistModal">
+      <div class="modal-container">
+        <button class="modal-close playlist" id="modalClose">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <div class="modal-content">
+
+          <!-- Playlist Form -->
+          <div class="auth-form" id="playlistForm">
+            <h1 class="modal-heading">Playlist</h1>
+
+            <form class="auth-form-content playlist">
+              <input type="file" alt="" class="file-input" hidden>
+              <img src="./placeholder.svg" alt="Chọn ảnh" id="previewImage" class="playlist-image">
+
+              <div class="container">
+                <!-- Playlist Name -->
+              <div class="form-group">
+                <input
+                  type="text"
+                  placeholder="Name Playlist"
+                  class="form-input"
+                  id="playlistName"
+                />
+              </div>
+
+              <!-- Playlist Title -->
+              <div class="form-group">
+                <textarea
+                    placeholder="Add an optional description"
+                    class="form-input"
+                    id="playlistTitle"
+                  ></textarea>
+              </div>
+            </div>
+            
+            <button type="submit" class="auth-submit-btn playlist">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
     <script src="main.js" type="module"></script>
   </body>
 </html>

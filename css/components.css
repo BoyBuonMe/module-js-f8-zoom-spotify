@@ -858,6 +858,45 @@
   line-height: 1.2;
 }
 
+/* Playlist Form */
+#playlistModal > .modal-container {
+  min-width: 650px !important;
+  min-height: 450px;
+}
+
+.auth-form-content.playlist {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  /* align-items: center; */
+  /* grid-template-columns: repeat(2, 1fr); */
+}
+
+.auth-form-content.playlist > .auth-submit-btn {
+  width: 150px;
+  position: absolute;
+  bottom: 50px;
+  right: 25px;
+}
+
+.auth-form-content.playlist .playlist-image {
+  width: 175px;
+  max-height: 175px;
+  aspect-ratio: 1;
+}
+
+#playlistTitle {
+  height: 100px;
+  margin-top: 20px;
+}
+
+#playlistName,
+#playlistTitle {
+  width: 400px;
+  border: none;
+  outline: none;
+}
+
 /* Auth Form */
 .auth-form-content {
   display: flex;
@@ -868,6 +907,10 @@
 
 .form-group {
   text-align: left;
+}
+
+.form-group textarea {
+  font-family: inherit;
 }
 
 .form-input {

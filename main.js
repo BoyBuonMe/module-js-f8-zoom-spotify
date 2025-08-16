@@ -1,5 +1,8 @@
 import httpRequest from "./utils/httpRequest.js";
 import * as exportMain from "./export-main.js";
+import updateUI from "./utils/updateUI.js";
+console.log(updateUI);
+updateUI.update()
 
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
@@ -470,6 +473,11 @@ async function updateCurrentUser(user) {
   const libraryContent = document.querySelector(".library-content");
   // =================== Load Artists =====================
   if (user) {
+    // ==== artistBtn ====
+    const artistsBtn = document.querySelector(".nav-tab.artists");
+
+    // ==== playlistBtn =====
+    const playlistsBtn = document.querySelector(".nav-tab.playlists");
     try {
       const { artists } = await httpRequest.get("artists?limit=3&offset=0");
       // console.log(artists);
@@ -491,7 +499,6 @@ async function updateCurrentUser(user) {
     `;
         })
         .join("");
-
       const innerArtist = document.createElement("div");
       innerArtist.innerHTML = htmlArtist;
       innerArtist.className = "inner-artist";
@@ -517,15 +524,11 @@ async function updateCurrentUser(user) {
     `;
         })
         .join("");
-
       const innerPlaylist = document.createElement("div");
       innerPlaylist.innerHTML = htmlPlaylist;
       innerPlaylist.className = "inner-playlist";
       innerPlaylist.hidden = true;
       libraryContent.appendChild(innerPlaylist);
-
-      // ===== Search Input =====
-      const searchInput = document.querySelector(".search-sidebar-input");
 
       // ==== Artist Items ====
       const artistItems = Array.from(document.querySelectorAll(".artist-item"));
@@ -535,9 +538,10 @@ async function updateCurrentUser(user) {
         document.querySelectorAll(".playlist-item")
       );
 
+      // ===== Search Input =====
+      const searchInput = document.querySelector(".search-sidebar-input");
       searchInput.addEventListener("input", () => {
         // ==== IF Artists Active ====
-        const artistsBtn = document.querySelector(".nav-tab.artists");
         if (artistsBtn.classList.value.includes("active")) {
           innerArtist.innerHTML = "";
 
@@ -556,7 +560,6 @@ async function updateCurrentUser(user) {
         }
 
         // ==== IF Playlist Active ====
-        const playlistsBtn = document.querySelector(".nav-tab.playlists");
         if (playlistsBtn.classList.value.includes("active")) {
           innerPlaylist.innerHTML = "";
 
@@ -571,6 +574,19 @@ async function updateCurrentUser(user) {
           });
         }
       });
+
+      // ===== Create Playlist =====
+      const createBtn = document.querySelector(".create-btn");
+      createBtn.addEventListener("click", async () => {
+        if (!playlistsBtn.classList.value.includes("active")) {
+          playlistsBtn.classList.add("active");
+          artistsBtn.classList.remove("active");
+        }
+
+        playlistModal();
+
+        // Tạo modal để nhập thông tin playlist => Mở nhiệm vụ trên F8 để biết thêm thông tin chi tiết
+      });
     } catch (error) {
       console.log(error);
     }
@@ -578,12 +594,6 @@ async function updateCurrentUser(user) {
 }
 
 async function logoutCurrentUser() {
-  // const authButtons = document.querySelector(".auth-buttons");
-  // authButtons.style.display = "flex";
-
-  // const userMenu = document.querySelector(".user-menu");
-  // userMenu.style.display = "none";
-
   const authButtons = document.querySelector(".auth-buttons");
   authButtons.style.display = "flex";
 
@@ -755,13 +765,83 @@ async function login() {
     );
 
     localStorage.setItem("accessToken", access_token);
-    localStorage.setItem("currentUser", user);
+    localStorage.setItem("currentUser", JSON.stringify(user));
     localStorage.setItem("refreshToken", refresh_token);
 
     updateCurrentUser(user);
   } catch (error) {
     console.log(error);
   }
+}
+
+function playlistModal() {
+  const playlistModal = document.querySelector("#playlistModal");
+  playlistModal.classList.add("show");
+
+  playlistModal.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const artistsBtn = document.querySelector(".nav-tab.artists");
+    const playlistsBtn = document.querySelector("nav-tab.playlists");
+
+    // ==== Close Playlist Modal ====
+    const closeBtn = document.querySelector(".modal-close.playlist");
+    if (
+      e.target === closeBtn ||
+      e.target.closest(".fa-times") ||
+      e.target === playlistModal
+    ) {
+      playlistModal.classList.remove("show");
+    }
+
+    // ==== Choose File Image ====
+    const imageFile = document.querySelector("#previewImage");
+    const inputFile = document.querySelector(".file-input");
+    imageFile.addEventListener("click", () => {
+      inputFile.click();
+    });
+
+    // ==== Render Image On ImageFile ====
+    inputFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+
+      if (file.name) {
+        imageFile.src = file.name;
+      } else {
+        return "";
+      }
+    });
+
+    // ==== Save Playlist ====
+    const playlistSaveBtn = document.querySelector(".auth-submit-btn.playlist");
+    if (e.target === playlistSaveBtn) {
+      e.preventDefault();
+      const playlistName = document.querySelector("#playlistName").value;
+      const playlistTitle = document.querySelector("#playlistTitle").value;
+      const imageFileValue = imageFile.src;
+
+      if (playlistName) {
+        const playlistInfo = {
+          name: playlistName,
+          description: playlistTitle,
+          image_url: imageFileValue,
+        };
+
+        try {
+          const { name, description, image_url } = await httpRequest.post(
+            "playlists",
+            playlistInfo
+          );
+
+          playlistModal.classList.remove("show");
+          window.location.href = "/"; // 
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        alert("Vui long nhap ten playlist");
+      }
+    }
+  });
 }
 
 async function logout() {
