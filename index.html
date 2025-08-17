@@ -14,6 +14,11 @@
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/responsive.css" />
+
+    <!-- jQuery (phải load trước toastr) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
   </head>
   <body>
     <div class="app-container">
@@ -35,8 +40,8 @@
           </div>
 
           <div class="nav-tabs">
-            <button class="nav-tab playlists">Playlists</button>
-            <button class="nav-tab artists active">Artists</button>
+            <button class="nav-tab playlists active">Playlists</button>
+            <button class="nav-tab artists">Artists</button>
           </div>
 
           <div class="search-library">
@@ -688,5 +693,7 @@
 
     
     <script src="main.js" type="module"></script>
+    <!-- JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   </body>
 </html>
