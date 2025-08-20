@@ -513,6 +513,19 @@
   margin-left: 2px;
 }
 
+.artist-controls .auth-submit-btn {
+  width: 150px;
+  height: 50px;
+}
+
+.artist-controls .auth-submit-btn.active {
+  width: 150px;
+  height: 50px;
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+}
+
 /* Track List */
 .popular-section {
   margin-bottom: var(--spacing-2xl);

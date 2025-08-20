@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const playlistContent = document.querySelector(".inner-playlist");
     const artistContent = document.querySelector(".inner-artist");
 
+
     if (user) {
       // ==== Show Playlists ====
       if (e.target === playlistBtn) {
@@ -164,7 +165,73 @@ document.addEventListener("DOMContentLoaded", async () => {
         artistBtn.classList.remove("active");
 
         try {
+          const { playlists } = await httpRequest.get(
+            "me/playlists/followed?limit=20&offset=0"
+          );
+
+          const htmlPlaylist = playlists
+            .map((playlist) => {
+              return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+            })
+            .join("");
+
+          const innerPlaylist = document.createElement("div");
+          innerPlaylist.innerHTML = htmlPlaylist;
+          innerPlaylist.className = "inner-playlist";
+          // innerPlaylist.hidden = true;
+          libraryContent.appendChild(innerPlaylist);
+        } catch (error) {
+          console.log(error);
+          toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
+        }
+
+        try {
           const { playlists } = await httpRequest.get("me/playlists");
+
+          const htmlPlaylist = playlists
+            .map((playlist) => {
+              return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+            })
+            .join("");
+
+          const innerPlaylist = document.createElement("div");
+          innerPlaylist.innerHTML = htmlPlaylist;
+          innerPlaylist.className = "inner-playlist";
+          // innerPlaylist.hidden = true;
+          libraryContent.appendChild(innerPlaylist);
+        } catch (error) {
+          console.log(error);
+          toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
+        }
+
+        try {
+          const { playlists } = await httpRequest.get(
+            "playlists?limit=2&offset=0"
+          );
 
           const htmlPlaylist = playlists
             .map((playlist) => {
@@ -203,9 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // =================== Load Artists =====================
         try {
-          const { artists } = await httpRequest.get(
-            "me/following?limit=20&offset=0"
-          );
+          const { artists } = await httpRequest.get("artists?limit=3&offset=0");
           // console.log(artists);
 
           const htmlArtist = artists
@@ -285,15 +350,32 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button class="play-btn-large">
                   <i class="fas fa-play"></i>
                 </button>
+              <button type="submit" class="auth-submit-btn follow">Follow</button>
+
               </section>
             `;
 
         inner.innerHTML = html;
         trackSection.appendChild(inner);
+        trackSection.setAttribute("data-id", id);
       } catch (error) {
         console.log(error);
         toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
       }
+
+      checkArtistFollow();
+
+      // ===== Follow Artist =====
+      const followBtn = document.querySelector(".auth-submit-btn.follow");
+      followBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (followBtn.classList.value.includes("active")) {
+          await unfollowArtist();
+        } else {
+          await followArtist();
+        }
+        // await updateCurrentUser(localStorage.getItem("currentUser"));
+      });
 
       // Get Tracks
       try {
@@ -394,6 +476,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button class="play-btn-large">
                   <i class="fas fa-play"></i>
                 </button>
+              <button type="submit" class="auth-submit-btn follow">Follow</button>
               </section>
             `;
               trackSection.appendChild(background);
@@ -424,9 +507,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         const inner = document.createElement("div");
         inner.innerHTML = html;
         trackSection.appendChild(inner);
+        trackSection.setAttribute("data-id", id);
       } catch (error) {
         toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
       }
+
+      await checkPlaylistFollow();
+
+      // ===== Follow Playlist ====
+      const followBtn = document.querySelector(".auth-submit-btn.follow");
+      followBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (followBtn.classList.value.includes("active")) {
+          await unfollowPlaylist();
+        } else {
+          await followPlaylist();
+        }
+        await updateCurrentUser(localStorage.getItem("currentUser"));
+      });
     }
   });
 
@@ -568,50 +666,40 @@ async function updateCurrentUser(user) {
     // ==== playlistBtn =====
     const playlistsBtn = document.querySelector(".nav-tab.playlists");
 
-    // ==== Artist Items ====
-    const artistItems = Array.from(document.querySelectorAll(".artist-item"));
-
-    // ==== Playlist Items ====
-    const playlistItems = Array.from(
-      document.querySelectorAll(".playlist-item")
-    );
-
-    // // =================== Load Artists =====================
-    // try {
-    //   const { artists } = await httpRequest.get(
-    //     "me/following?limit=20&offset=0"
-    //   );
-    //   // console.log(artists);
-
-    //   const htmlArtist = artists
-    //     .map((item) => {
-    //       return `
-    //         <div class="library-item artist-item" data-id="${item.id}">
-    //           <img
-    //             src="${item.image_url}"
-    //             alt="${item.name}"
-    //             class="item-image"
-    //           />
-    //           <div class="item-info">
-    //             <div class="item-title">${item.name}</div>
-    //             <div class="item-subtitle">Artist</div>
-    //           </div>
-    //         </div>
-    // `;
-    //     })
-    //     .join("");
-
-    //   const innerArtist = document.createElement("div");
-    //   innerArtist.innerHTML = htmlArtist;
-    //   innerArtist.className = "inner-artist";
-    //   libraryContent.appendChild(innerArtist);
-
-    // } catch (error) {
-    //   console.log(error);
-    //   toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
-    // }
-
     // =========== Load Playlists ===================
+    const innerPlaylist = document.createElement("div");
+    try {
+      const { playlists } = await httpRequest.get(
+        "me/playlists/followed?limit=20&offset=0"
+      );
+
+      const htmlPlaylist = playlists
+        .map((playlist) => {
+          return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+        })
+        .join("");
+
+      const inner = document.createElement("div");
+      inner.innerHTML = htmlPlaylist;
+      innerPlaylist.appendChild(inner);
+      libraryContent.appendChild(innerPlaylist);
+    } catch (error) {
+      console.log(error);
+      toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
+    }
+
     try {
       const { playlists } = await httpRequest.get("me/playlists");
 
@@ -633,15 +721,53 @@ async function updateCurrentUser(user) {
         })
         .join("");
 
-      const innerPlaylist = document.createElement("div");
-      innerPlaylist.innerHTML = htmlPlaylist;
-      innerPlaylist.className = "inner-playlist";
-      // innerPlaylist.hidden = true;
+      const inner = document.createElement("div");
+      inner.innerHTML = htmlPlaylist;
+      innerPlaylist.appendChild(inner);
       libraryContent.appendChild(innerPlaylist);
     } catch (error) {
       console.log(error);
       toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
     }
+
+    try {
+      const { playlists } = await httpRequest.get("playlists?limit=2&offset=0");
+
+      const htmlPlaylist = playlists
+        .map((playlist) => {
+          return `
+            <div class="library-item playlist-item" data-id="${playlist.id}">
+              <img
+                src="placeholder.svg?height=48&width=48"
+                alt="${playlist.name}"
+                class="item-image"
+              />
+              <div class="item-info">
+                <div class="item-title">${playlist.name}</div>
+                <div class="item-subtitle"></div>
+              </div>
+            </div>
+    `;
+        })
+        .join("");
+
+      const inner = document.createElement("div");
+      inner.innerHTML = htmlPlaylist;
+      innerPlaylist.appendChild(inner);
+      libraryContent.appendChild(innerPlaylist);
+    } catch (error) {
+      console.log(error);
+      toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
+    }
+
+    // ==== Artist Items ====
+    const artistItems = Array.from(document.querySelectorAll(".artist-item"));
+
+    // ==== Playlist Items ====
+    const playlistItems = Array.from(
+      document.querySelectorAll(".playlist-item")
+    );
+
 
     // ===== Search Input =====
     const searchInput = document.querySelector(".search-sidebar-input");
@@ -682,13 +808,14 @@ async function updateCurrentUser(user) {
 
     // ===== Create Playlist =====
     const createBtn = document.querySelector(".create-btn");
-    createBtn.addEventListener("click", async () => {
+    createBtn.addEventListener("click", () => {
       // if (!playlistsBtn.classList.value.includes("active")) {
       //   playlistsBtn.classList.add("active");
       //   artistsBtn.classList.remove("active");
       // }
 
-      playlistModal();
+      if (!user) toastr.error("Bạn cần đăng nhập để tạo playlist!", "Lỗi");
+      handlePlaylistModal();
     });
   }
 }
@@ -883,71 +1010,190 @@ async function login() {
   }
 }
 
-function playlistModal() {
+async function checkPlaylistFollow() {
+  const trackSection = document.querySelector(".tracks-section");
+  const followPlaylistBtn = document.querySelector(".auth-submit-btn.follow");
+
+  const id = trackSection.getAttribute("data-id");
+  // console.log(id);
+
+  const { playlists } = await httpRequest.get(
+    "me/playlists/followed?limit=20&offset=0"
+  );
+  // console.log(playlists);
+
+  playlists.filter((playlist) => {
+    // console.log(playlist);
+    if (id !== playlist.id) return "";
+    followPlaylistBtn.style.transition = "none";
+    followPlaylistBtn.classList.add("active");
+    followPlaylistBtn.textContent = "Unfollow";
+  });
+
+  // JSON.parse(localStorage.getItem("check-follow-playlist")).filter(
+  //   (playlist) => {
+  //     if (id !== playlist.id) return "";
+  //     followPlaylistBtn.style.transition = "none";
+  //     followPlaylistBtn.classList.add("active");
+  //     followPlaylistBtn.textContent = "Unfollow";
+  //   }
+  // );
+}
+
+async function followPlaylist() {
+  const id = document.querySelector(".tracks-section").getAttribute("data-id");
+  // console.log(id);
+
+  try {
+    const { message } = await httpRequest.post(`playlists/${id}/follow`);
+    toastr.success(message, "Success");
+    await checkPlaylistFollow();
+  } catch (error) {
+    console.log(error);
+    toastr.error(error.response.error.message, "Error");
+  }
+}
+
+async function unfollowPlaylist() {
+  const id = document.querySelector(".tracks-section").getAttribute("data-id");
+  const followArtistBtn = document.querySelector(".auth-submit-btn.follow");
+  // console.log(id);
+
+  try {
+    const { message } = await httpRequest.del(`playlists/${id}/follow`);
+    toastr.success(message, "Success");
+
+    await checkPlaylistFollow();
+
+    followArtistBtn.style.transition = "none";
+    followArtistBtn.classList.remove("active");
+    followArtistBtn.textContent = "Follow";
+  } catch (error) {
+    console.log(error);
+    toastr.error(error.response.error.message, "Error");
+  }
+}
+
+async function checkArtistFollow() {
+  const id = document.querySelector(".tracks-section").getAttribute("data-id");
+  const followArtistBtn = document.querySelector(".auth-submit-btn.follow");
+  // console.log(followArtistBtn);
+
+  const { artists } = await httpRequest.get("me/following?limit=10&offset=0");
+  // console.log(artists);
+
+  artists.filter((artist) => {
+    // console.log(artist);
+    if (id !== artist.id) return "";
+    followArtistBtn.style.transition = "none";
+    followArtistBtn.classList.add("active");
+    followArtistBtn.textContent = "Unfollow";
+  });
+
+  // JSON.parse(localStorage.getItem("check-follow-artist")).filter((artist) => {
+  //   if (id !== artist.id) return "";
+  //   followArtistBtn.style.transition = "none";
+  //   followArtistBtn.classList.add("active");
+  //   followArtistBtn.textContent = "Unfollow";
+  // });
+}
+
+async function followArtist() {
+  const id = document.querySelector(".tracks-section").getAttribute("data-id");
+
+  try {
+    const { message } = await httpRequest.post(`artists/${id}/follow`);
+    toastr.success(message, "Success");
+    await checkArtistFollow();
+  } catch (error) {
+    console.log(error);
+    toastr.error(error.response.error.message, "Error");
+  }
+}
+
+async function unfollowArtist() {
+  const id = document.querySelector(".tracks-section").getAttribute("data-id");
+  const followArtistBtn = document.querySelector(".auth-submit-btn.follow");
+  // console.log(id);
+
+  try {
+    const { message } = await httpRequest.del(`artists/${id}/follow`);
+    toastr.success(message, "Success");
+
+    await checkArtistFollow();
+
+    followArtistBtn.style.transition = "none";
+    followArtistBtn.classList.remove("active");
+    followArtistBtn.textContent = "Follow";
+  } catch (error) {
+    console.log(error);
+    toastr.error(error.response.error.message, "Error");
+  }
+}
+
+function handlePlaylistModal() {
   const playlistModal = document.querySelector("#playlistModal");
-  playlistModal.classList.add("show");
+  const nameInput = document.querySelector("#playlistName");
+  const titleInput = document.querySelector("#playlistTitle");
+  const imageFile = document.querySelector("#previewImage");
+  const inputFile = document.querySelector(".file-input");
+  const playlistSaveBtn = document.querySelector(".auth-submit-btn.playlist");
+  const closeBtn = document.querySelector(".modal-close.playlist");
 
-  playlistModal.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    const nameInput = document.querySelector("#playlistName");
-    const titleInput = document.querySelector("#playlistTitle");
+  // Nếu trước đó đã lưu handler, remove chúng để tránh chồng chéo
+  if (playlistModal._handleImageClick) {
+    imageFile.removeEventListener("click", playlistModal._handleImageClick);
+    inputFile.removeEventListener("change", playlistModal._handleFileChange);
+    playlistModal.removeEventListener(
+      "click",
+      playlistModal._handleSavePlaylist
+    );
+    playlistModal.removeEventListener("click", playlistModal._handleCloseModal);
+  }
 
-    // ==== Choose File Image ====
-    const imageFile = document.querySelector("#previewImage");
-    const inputFile = document.querySelector(".file-input");
-    imageFile.addEventListener("click", () => {
-      inputFile.click();
-    });
+  // ==== Handlers (tạo một lần cho lần mở này và lưu vào phần tử modal) ====
+  const handleImageClick = () => {
+    inputFile.click();
+  };
 
-    // ==== Render Image On ImageFile ====
-    inputFile.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-
-      if (file.name) {
-        imageFile.src = file.name;
-      } else {
-        return "";
-      }
-    });
-
-    // ==== Save Playlist ====
-    const playlistSaveBtn = document.querySelector(".auth-submit-btn.playlist");
-    if (e.target === playlistSaveBtn) {
-      e.preventDefault();
-      const playlistName = nameInput.value;
-      const playlistTitle = titleInput.value;
-      const imageFileValue = imageFile.src;
-
-      if (playlistName) {
-        const playlistInfo = {
-          name: playlistName,
-          description: playlistTitle,
-          image_url: imageFileValue,
-        };
-
-        try {
-          const { name, description, image_url } = await httpRequest.post(
-            "playlists",
-            playlistInfo
-          );
-
-          // window.location.href = "/";
-          await renderHome();
-          await updateCurrentUser(
-            JSON.parse(localStorage.getItem("currentUser"))
-          );
-          playlistModal.classList.remove("show");
-        } catch (error) {
-          console.log(error);
-          toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
-        }
-      } else {
-        toastr.warning("Vui lòng nhập tên playlist!", "Cảnh báo");
-      }
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      imageFile.src = URL.createObjectURL(file);
     }
+  };
 
-    // ==== Close Playlist Modal ====
-    const closeBtn = document.querySelector(".modal-close.playlist");
+  const handleSavePlaylist = async (e) => {
+    if (e.target !== playlistSaveBtn) return;
+    e.preventDefault();
+
+    if (nameInput.value !== "") {
+      const playlistInfo = {
+        name: nameInput.value,
+        description: titleInput.value,
+        image_url: imageFile.src,
+      };
+
+      try {
+        const { name, description, image_url } = await httpRequest.post(
+          "playlists",
+          playlistInfo
+        );
+
+        playlistModal.classList.remove("show");
+        nameInput.value = "";
+        titleInput.value = "";
+        imageFile.src = "./placeholder.svg";
+      } catch (error) {
+        console.log(error);
+        toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
+      }
+    } else {
+      toastr.warning("Vui lòng nhập tên playlist!", "Cảnh báo");
+    }
+  };
+
+  const handleCloseModal = (e) => {
     if (
       e.target === closeBtn ||
       e.target.closest(".fa-times") ||
@@ -958,7 +1204,22 @@ function playlistModal() {
       titleInput.value = "";
       imageFile.src = "./placeholder.svg";
     }
-  });
+  };
+
+  // ==== Lưu tham chiếu handler lên modal để lần sau có thể remove ====
+  playlistModal._handleImageClick = handleImageClick;
+  playlistModal._handleFileChange = handleFileChange;
+  playlistModal._handleSavePlaylist = handleSavePlaylist;
+  playlistModal._handleCloseModal = handleCloseModal;
+
+  // ==== Add listeners mới ====
+  imageFile.addEventListener("click", handleImageClick);
+  inputFile.addEventListener("change", handleFileChange);
+  playlistModal.addEventListener("click", handleSavePlaylist);
+  playlistModal.addEventListener("click", handleCloseModal);
+
+  // Show modal
+  playlistModal.classList.add("show");
 }
 
 // toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
