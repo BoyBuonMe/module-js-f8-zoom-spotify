@@ -1080,6 +1080,7 @@ function handlePlaylistModal() {
         nameInput.value = "";
         titleInput.value = "";
         imageFile.src = "./placeholder.svg";
+        await loadPlaylist();
       } catch (error) {
         console.log(error);
         toastr.error("Lỗi dữ liệu, vui lòng thử lại sau!", "Lỗi");
